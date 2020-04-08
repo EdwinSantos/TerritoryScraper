@@ -19,6 +19,7 @@ First run instructions
 
  
 4.	From the top of this page download the .zip folder
+
 	 ![](Images/4Github.png)
 
 
