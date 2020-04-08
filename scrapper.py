@@ -2,6 +2,7 @@ from bs4 import BeautifulSoup
 import requests
 import pandas
 import re
+import os
 
 
 def scrape_from_411(street_name):
@@ -37,10 +38,19 @@ def getInfoFromConsole():
     df.to_csv(streetName + ".csv", sep=',', index=False)
 
 
+def lookup_file(file_name):
+    for full_file_name in os.listdir():
+        if full_file_name.startswith(file_name):
+            return full_file_name
+
+
 def get_info_from_file():
     # Read the original territory and just keep the info that's important
-    file_name = input("Enter the file name in the format MyTerritory.csv\n")
-    original_territory = pandas.read_excel(file_name, skiprows=11)
+    file_name = input("Enter the start of the file name in the format MyTerr if the full filename is MyTerritory.xls "
+                      "\n You can enter the entire name if you wish but its just faster this way\n")
+    full_file_name = lookup_file(file_name)
+
+    original_territory = pandas.read_excel(full_file_name, skiprows=11)
     original_territory_address = original_territory.iloc[:, :3]
     original_territory_address.columns = ["House Number", "Street Name", "Symbol"]
     # Get rid of DNC, Witnesses ect.
@@ -52,12 +62,12 @@ def get_info_from_file():
     for street in unique_streets:
         houses_on_street = original_territory_address.loc[original_territory_address["Street Name"] == street]
         joined_tables = pandas.merge(houses_on_street, scrape_from_411(street), how="left", on=["House Number", "House "
-                                                                                                              "Number"])
+                                                                                                                "Number"])
         final_territory = final_territory.append(joined_tables)
     # output the results from the scrape to the territory
     final_territory = final_territory[final_territory['Phone Number'].notna()]
     final_territory = final_territory.drop(["Symbol", "Street Name_x"], 1)
-    final_territory.to_csv(file_name + "WithPhoneNumbers.csv", sep=',', index=False)
+    final_territory.to_csv(full_file_name + "WithPhoneNumbers.csv", sep=',', index=False)
 
 
 def get_info_from_online_territory():
