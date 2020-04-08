@@ -7,16 +7,23 @@ First run instructions
 	https://www.python.org/ftp/python/3.8.2/python-3.8.2.exe
 
 2.	Open powershell 
+![](Images/2Powershell.png)
  
 3.	Type “cd” and the path of the directory where you want to manage your territories from. The sake of simplicity use Documents. If you want to use windows enter: 
 
      cd C:\Users\ [YOUR COMPUTERS NAME HERE] \Documents
 
      I’ve included another example below. 
+	 
+	 ![](Images/3Powershell.png)
+
  
 4.	From the top of this page download the .zip folder
+	 ![](Images/4Github.png)
+
 
 5.  Open it with your default zip viewer be it winrar, 7zip, or whatever the windows one is and drag the folder into your Documents folder. Place your territories inside of this folder.
+	 ![](Images/5BatFile.png)
 
 6.	Once your there click on the file called RunMeTheFirstTime.bat
  
