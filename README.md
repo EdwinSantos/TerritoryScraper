@@ -7,7 +7,7 @@ First run instructions
 	https://www.python.org/ftp/python/3.8.2/python-3.8.2.exe
 
 2.	Open powershell 
-![](Images/2Powershell.png)
+	![](Images/2Powershell.png)
  
 3.	Type “cd” and the path of the directory where you want to manage your territories from. The sake of simplicity use Documents. If you want to use windows enter: 
 
@@ -43,6 +43,7 @@ Every other run instruction
 </p>
 
 1.	Open powershell and enter the command
+
 	cd C:\Users\ [YOUR COMPUTERS NAME HERE] \Documents\TerritoryScraper-master
 	
 2.	Type “python scrapper.py”
