@@ -97,7 +97,8 @@ def scrape_from_411(street_name):
 
     for Address in content.findAll('span', attrs={"class": "adr"}):
         house_numbers.append(int(re.search("\w*(?= )", Address.text).group(0)))
-        street_names.append(re.search("\s(.*)", Address.text).group(0))
+        short_address = Address.text.partition(" Brampton")[0]
+        street_names.append(re.search("\s(.*)", short_address).group(0))
 
     df = pandas.DataFrame(data={"House Number": house_numbers, "Address": street_names,
                                 "Phone Number": phone_numbers, "Name": names})
