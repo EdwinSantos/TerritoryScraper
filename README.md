@@ -7,10 +7,10 @@ First run instructions
 	https://www.python.org/ftp/python/3.8.2/python-3.8.2.exe
 
 2.	Check the box for "Add Python 3.8 to PATH" and then select install now.
-	![](Images/1Python)
+	![](Images/1Python.png)
 
 3.	Select close when it finishes installing.
-	![](Images/2Python)
+	![](Images/2Python.png)
 
 4.	Download the program repository
 	![](Images/4Github)
