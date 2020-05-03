@@ -1,7 +1,6 @@
-pip install --upgrade pip setuptools wheel
 python -m pip install --upgrade pip
-pip install bs4
-pip install pandas
-pip install requests
-pip install xlrd
-pip install os
+python -m pip install bs4
+python -m pip install pandas
+python -m pip install requests
+python -m pip install xlrd
+python -m pip install os
