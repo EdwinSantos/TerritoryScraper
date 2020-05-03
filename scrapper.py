@@ -60,7 +60,7 @@ def scrape_from_WhitePagesCanada(street_name, houses_on_street, city_name):
                 collected_all_pages = True
                 break
         for person in content.findAll('a', attrs={"style": "color:#333; font-size:16px; text-decoration:none"}):
-            house_number = int(re.search("\w*(?= )", person.text).group(0))
+            house_number = re.search("\w*(?= )", person.text).group(0)
             if (house_number in houses_on_street) or whole_street:
                 person_url.append(person.get("href"))
         page_counter = page_counter + 1
@@ -109,8 +109,7 @@ def split_address(address):
     unit_number = re.search("^(.+?)-", address)
     if unit_number is not None:
         unit_number = unit_number.group(0)[:-1]
-    print(unit_number)
-    house_number = int(re.search("\w*(?= )", address).group(0))
+    house_number = re.search("\w*(?= )", address).group(0)
     street_name = re.search("\s(.*)", address).group(0)
     return house_number, street_name, unit_number
 
