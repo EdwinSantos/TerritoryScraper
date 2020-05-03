@@ -1,7 +1,6 @@
-runas /user:Administrator
-python get-pip.py
-pip install bs4
-pip install pandas
-pip install requests
-pip install xlrd
-pip install os
+python -m pip install --upgrade pip
+python -m pip install bs4
+python -m pip install pandas
+python -m pip install requests
+python -m pip install xlrd
+python -m pip install os

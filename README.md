@@ -4,7 +4,7 @@ First run instructions
 </p>
 1.	Download Python from here and install it
 
-	https://www.python.org/ftp/python/3.8.2/python-3.8.2.exe
+	https://www.python.org/downloads/
 
 2.	Check the box for "Add Python 3.8 to PATH" and then select install now.
 	![](Images/1Python.png)
