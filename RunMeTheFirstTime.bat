@@ -1,5 +1,5 @@
 runas /user:Administrator
-python get-pip.py
+python -m pip install --upgrade pip
 pip install bs4
 pip install pandas
 pip install requests
