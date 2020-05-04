@@ -60,7 +60,7 @@ def scrape_from_WhitePagesCanada(street_name, houses_on_street, city_name):
                 collected_all_pages = True
                 break
         for person in content.findAll('a', attrs={"style": "color:#333; font-size:16px; text-decoration:none"}):
-            house_number = re.search("\w*(?= )", person.text).group(0)
+            house_number, street_name, unit_number = split_address(person.text)
             if (house_number in houses_on_street) or whole_street:
                 person_url.append(person.get("href"))
         page_counter = page_counter + 1
@@ -74,7 +74,7 @@ def scrape_from_WhitePagesCanada(street_name, houses_on_street, city_name):
         address = content.find('span', attrs={"itemprop": "streetAddress"})
         name = content.find('span', attrs={"itemprop": "name"})
         house_number, street_name, unit_number = split_address(address.text)
-        people.append([house_number, unit_number,  street_name, telephone.text, name.text])
+        people.append([house_number, unit_number, street_name, telephone.text, name.text])
 
     scrape_results = pandas.DataFrame.from_records(people, columns=["House Number", "Unit Number", "Address",
                                                                     "Phone Number", "Name"])
@@ -108,8 +108,9 @@ def scrape_from_411(street_name, houses_on_street, city_name):
 def split_address(address):
     unit_number = re.search("^(.+?)-", address)
     if unit_number is not None:
+        address = address.replace(unit_number.group(0), "")
         unit_number = unit_number.group(0)[:-1]
-    house_number = re.search("\w*(?= )", address).group(0)
+    house_number = int(re.search("\d+", address).group(0))
     street_name = re.search("\s(.*)", address).group(0)
     return house_number, street_name, unit_number
 
@@ -121,7 +122,7 @@ def getInfoFromConsole():
     scrape_from_whitepagescanada_results = scrape_from_WhitePagesCanada(street_name, [], city_name)
     scraped_tables = pandas.concat([scrape_from_411_results, scrape_from_whitepagescanada_results])
     scraped_tables = scraped_tables.drop_duplicates(subset=["House Number", "Phone Number"])
-    final_df = scraped_tables.sort_values("House Number")
+    final_df = scraped_tables.sort_values(["House Number", "Unit Number"], ascending=[True, True])
     # Scrape from both and send the results to another method to do the merging
     final_df.to_csv(street_name + ".csv", sep=',', index=False)
 
@@ -158,7 +159,7 @@ def get_info_from_file():
         scraped_tables = pandas.concat([df_canada_white_pages, df_411])
         scraped_tables = scraped_tables.drop_duplicates(subset=["House Number", "Phone Number"])
         print("Removed the duplicates")
-        scraped_tables_sorted = scraped_tables.sort_values(by=["House Number", "Unit Number"])
+        scraped_tables_sorted = scraped_tables.sort_values(["House Number", "Unit Number"], ascending=[True, True])
         final_territory = final_territory.append(scraped_tables_sorted)
     # output the results from the scrape to the territory
     final_territory = final_territory[final_territory['Phone Number'].notna()]
