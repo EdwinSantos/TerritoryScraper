@@ -2,6 +2,10 @@
 Phone territory builder V0.1
 First run instructions
 </p>
+
+[Instruction and usage video](https://www.youtube.com/watch?v=ka7IaEH2qXY)
+
+
 1.	Download Python from here and install it
 
 	https://www.python.org/downloads/
