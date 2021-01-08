@@ -30,7 +30,7 @@ First run instructions
 
 8.	Move the territory you want to get the phone numbers for into the folder TerritoryScraper-Master
 
-9.	Click on Scrapper.py
+9.	Click on Scraper.py
 
 10.	Select the territory type
 	1. If you are using something like territory helper type "1" (without the qoutes) and hit enter. As of 4/11 this is still under development.
