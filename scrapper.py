@@ -53,10 +53,8 @@ def scrape_from_WhitePagesCanada(street_name, houses_on_street, city_name):
         content = BeautifulSoup(html_content.content, "html.parser")
         # Check if I reached the last page
         for page in content.findAll('div', attrs={"class": "eleven columns"}):
-            if first_div:
-                first_div = False
-                continue
-            if "No record found" in page.text:
+            if "No record found.Please try searching different keyword." in page.text:
+                print("Reached last page")
                 collected_all_pages = True
                 break
         for person in content.findAll('a', attrs={"style": "color:#333; font-size:16px; text-decoration:none"}):
