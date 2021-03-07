@@ -1,8 +1,9 @@
 from bs4 import BeautifulSoup
-import requests
 import pandas
 import re
 import os
+import requests
+import json
 
 # Had to add a dictionary to change street types because white pages canada search is hot garbage
 street_dict = {
@@ -68,15 +69,18 @@ def scrape_from_WhitePagesCanada(street_name, houses_on_street, city_name):
     for url in person_url:
         print(url)
         html_content = requests.get(url)
+
         content = BeautifulSoup(html_content.content, "html.parser")
         telephone = content.find('span', attrs={"itemprop": "telephone"})
         address = content.find('span', attrs={"itemprop": "streetAddress"})
         name = content.find('span', attrs={"itemprop": "name"})
-        house_number, street_name, unit_number = split_address(address.text)
-        people.append([house_number, unit_number, street_name, telephone.text, name.text])
+        postal_code = content.find('span', attrs={"itemprop": "postalCode"})
 
-    scrape_results = pandas.DataFrame.from_records(people, columns=["House Number", "Unit Number", "Address",
-                                                                    "Phone Number", "Name"])
+        house_number, street_name, unit_number = split_address(address.text)
+        people.append([house_number, unit_number, postal_code.text, street_name, telephone.text, name.text])
+
+    scrape_results = pandas.DataFrame.from_records(people, columns=["House Number", "Unit Number", "Postal Code",
+                                                                    "Address", "Phone Number", "Name"])
     return scrape_results
 
 
@@ -84,7 +88,8 @@ def scrape_from_411(street_name, houses_on_street, city_name):
     print("Looking up " + street_name + " on 411")
     whole_street = not houses_on_street
     street_name = street_name.replace(" ", "+")
-    url = 'https://www.canada411.ca/search/si/1/-/' + street_name + '+Brampton+ON/?pgLen=100'
+    city_name = city_name.replace(" ", "+")
+    url = 'https://www.canada411.ca/search/si/1/-/' + street_name + '+' + city_name + '+ON/?pgLen=100'
     print(url)
     html_content = requests.get(url)
     content = BeautifulSoup(html_content.content, "html.parser")
@@ -95,12 +100,13 @@ def scrape_from_411(street_name, houses_on_street, city_name):
         phone_number = FullPerson.find('span', attrs={"class": "c411Phone"}).text
         name = FullPerson.find('h2', attrs={"class": "c411ListedName"}).string
         full_address = FullPerson.find('span', attrs={"class": "adr"}).text
-        short_address = full_address.partition(" Brampton")[0]
+        short_address = full_address.partition(" " + city_name)[0]
+        postal_code = (full_address.partition(" " + city_name)[2])[4:].replace(" ", "")
         house_number, street_name, unit_number = split_address(short_address)
         if (house_number in houses_on_street) or whole_street:
-            people.append([house_number, unit_number, street_name, phone_number, name])
-    scrape_results = pandas.DataFrame.from_records(people, columns=["House Number", "Unit Number", "Address",
-                                                                    "Phone Number", "Name"])
+            people.append([house_number, unit_number, postal_code, street_name, phone_number, name])
+    scrape_results = pandas.DataFrame.from_records(people, columns=["House Number", "Unit Number", "Postal Code",
+                                                                    "Address", "Phone Number", "Name"])
     return scrape_results
 
 
@@ -114,14 +120,33 @@ def split_address(address):
     return house_number, street_name, unit_number
 
 
-def getInfoFromConsole():
+def is_number_valid(number):
+    # Todo: add more error catching
+    if not os.path.isfile("key.txt"):
+        return True
+    key_file = open("key.txt", "r")
+    api_key = key_file.read()
+    phone_number = number
+    request_url = "http://apilayer.net/api/validate?access_key=" + api_key + "&number=" + phone_number + \
+                  "&country_code=CA"
+    response = requests.get(request_url)
+    if response.status_code != 200:
+        print("Something went wrong with the API")
+        return
+    response_data = json.loads(response.text)
+
+    return response_data["valid"]
+
+
+def get_info_from_console():
     city_name = input("Enter the city name \n")
     street_name = input("Enter the street name\n")
     scrape_from_411_results = scrape_from_411(street_name, [], city_name)
     scrape_from_whitepagescanada_results = scrape_from_WhitePagesCanada(street_name, [], city_name)
     scraped_tables = pandas.concat([scrape_from_411_results, scrape_from_whitepagescanada_results])
     scraped_tables = scraped_tables.drop_duplicates(subset=["House Number", "Phone Number"])
-    final_df = scraped_tables.sort_values(["House Number", "Unit Number"], ascending=[True, True])
+    filtered_table = scraped_tables[scraped_tables.apply(lambda x: is_number_valid(x["Phone Number"]), axis=1)]
+    final_df = filtered_table.sort_values(["House Number", "Unit Number"], ascending=[True, True])
     # Scrape from both and send the results to another method to do the merging
     final_df.to_csv(street_name + ".csv", sep=',', index=False)
 
@@ -160,28 +185,23 @@ def get_info_from_file():
         scraped_tables = scraped_tables.drop_duplicates(subset=["House Number", "Phone Number"])
         print("Removed the duplicates")
         scraped_tables_sorted = scraped_tables.sort_values(["House Number", "Unit Number"], ascending=[True, True])
-        final_territory = final_territory.append(scraped_tables_sorted)
+
+        filtered_table = scraped_tables_sorted[scraped_tables_sorted.apply(lambda x: is_number_valid(x["Phone Number"]),
+                                                                           axis=1)]
+        final_territory = final_territory.append(filtered_table, ignore_index=True)
     # output the results from the scrape to the territory
     final_territory = final_territory[final_territory['Phone Number'].notna()]
     final_territory.to_csv(full_file_name + "WithPhoneNumbers.csv", sep=',', index=False)
 
 
-def get_info_from_online_territory():
-    # Havent setup to handle online territory yet
-    print("This is still under construction")
-    exit()
-
-
 def main():
-    input_type = input("Get phone numbers from \n 1. Territory on the web \n 2. Territory in file \n 3. Street\n eg. "
-                       "if you want to use a territory you have saved as a file enter the number 2 on the line below"
+    input_type = input("Get phone numbers from \n 1. Territory in file \n 2. Street\n eg. "
+                       "if you want to use a territory you have saved as a file enter the number 1 on the line below"
                        " \n")
     if input_type == "1":
-        get_info_from_online_territory()
-    elif input_type == "2":
         get_info_from_file()
-    elif input_type == "3":
-        getInfoFromConsole()
+    elif input_type == "2":
+        get_info_from_console()
     else:
         print("Please use one of the standard inputs")
         main()
