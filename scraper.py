@@ -167,9 +167,8 @@ def get_info_from_file():
     original_territory = pandas.read_excel(full_file_name, skiprows=11)
     original_territory_address = original_territory.iloc[:, :3]
     original_territory_address.columns = ["House Number", "Street Name", "Symbol"]
-    # Get rid of DNC, Witnesses ect.
-    symbols_to_drop = original_territory_address[original_territory_address["Symbol"].isin(["JW", "DNC", "NE"])].index
-    original_territory_address = original_territory_address.drop(symbols_to_drop, inplace=False)
+    original_territory_address = original_territory_address[original_territory_address["Symbol"].isnull()]
+
     final_territory = pandas.DataFrame()
     # Send the individual streets to the scrapper
     original_territory_address["Street Name"] = original_territory_address["Street Name"].str.strip()
